@@ -1414,6 +1414,57 @@
 <span id="1414">1414</span>
 <span id="1415">1415</span>
 <span id="1416">1416</span>
+<span id="1417">1417</span>
+<span id="1418">1418</span>
+<span id="1419">1419</span>
+<span id="1420">1420</span>
+<span id="1421">1421</span>
+<span id="1422">1422</span>
+<span id="1423">1423</span>
+<span id="1424">1424</span>
+<span id="1425">1425</span>
+<span id="1426">1426</span>
+<span id="1427">1427</span>
+<span id="1428">1428</span>
+<span id="1429">1429</span>
+<span id="1430">1430</span>
+<span id="1431">1431</span>
+<span id="1432">1432</span>
+<span id="1433">1433</span>
+<span id="1434">1434</span>
+<span id="1435">1435</span>
+<span id="1436">1436</span>
+<span id="1437">1437</span>
+<span id="1438">1438</span>
+<span id="1439">1439</span>
+<span id="1440">1440</span>
+<span id="1441">1441</span>
+<span id="1442">1442</span>
+<span id="1443">1443</span>
+<span id="1444">1444</span>
+<span id="1445">1445</span>
+<span id="1446">1446</span>
+<span id="1447">1447</span>
+<span id="1448">1448</span>
+<span id="1449">1449</span>
+<span id="1450">1450</span>
+<span id="1451">1451</span>
+<span id="1452">1452</span>
+<span id="1453">1453</span>
+<span id="1454">1454</span>
+<span id="1455">1455</span>
+<span id="1456">1456</span>
+<span id="1457">1457</span>
+<span id="1458">1458</span>
+<span id="1459">1459</span>
+<span id="1460">1460</span>
+<span id="1461">1461</span>
+<span id="1462">1462</span>
+<span id="1463">1463</span>
+<span id="1464">1464</span>
+<span id="1465">1465</span>
+<span id="1466">1466</span>
+<span id="1467">1467</span>
 </pre><pre class="rust"><code><span class="attribute">#![<span class="ident">feature</span>(<span class="ident">box_into_inner</span>)]</span>
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">proc_macro</span>;
 
@@ -1644,6 +1695,11 @@
 <span class="doccomment">/// `ewasm_fn_sig!` macro to get your function signature;</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// ```compile_fail</span>
+<span class="doccomment">/// #[ewasm_fn]</span>
+<span class="doccomment">/// fn check_input_object(s: SimpleStruct) -&gt; anyhow::Result&lt;()&gt; {</span>
+<span class="doccomment">///     Ok(())</span>
+<span class="doccomment">/// }</span>
+<span class="doccomment">///</span>
 <span class="doccomment">/// #[ewasm_main]</span>
 <span class="doccomment">/// fn main() -&gt; Result&lt;()&gt; {</span>
 <span class="doccomment">///     let contract = Contract::new()?;</span>
@@ -1654,6 +1710,7 @@
 <span class="doccomment">///     Ok(())</span>
 <span class="doccomment">/// }</span>
 <span class="doccomment">/// ```</span>
+<span class="doccomment">///</span>
 <span class="attribute">#[<span class="ident">proc_macro_error</span>]</span>
 <span class="attribute">#[<span class="ident">proc_macro_attribute</span>]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ewasm_fn</span>(<span class="ident">attr</span>: <span class="ident">TokenStream</span>, <span class="ident">item</span>: <span class="ident">TokenStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TokenStream</span> {
@@ -2533,8 +2590,27 @@
                                 rt: Some(runtime.clone())
                             };
 
-                            match h.execute(caller, sig, input_data, 1_000_000_000_000) {
-                                Ok(r) =&gt; assert_eq!(r.output_data, expect_output, &quot;{} output is unexpected&quot;, fn_name),
+                            match h.execute(caller.clone(), sig, input_data, 1_000_000_000_000) {
+                                Ok(r) =&gt; {
+                                    if !(*r.output_data == *expect_output) {
+                                        if let Some(caller) = caller {
+                                            eprintln!(&quot;vm caller : {}&quot;, caller);
+                                        }
+
+                                        if let Ok(output_msg) = std::str::from_utf8(&amp;r.output_data) {
+                                            eprintln!(&quot;vm msg    : {}&quot;, output_msg);
+                                        } else {
+                                            eprintln!(&quot;vm output : {:?}&quot;, r.output_data);
+                                        }
+
+                                        if let Ok(expect_msg) = std::str::from_utf8(&amp;expect_output) {
+                                            eprintln!(&quot;expected  : {}&quot;, expect_msg);
+                                        } else {
+                                            eprintln!(&quot;expected  : {:?}&quot;, expect_output);
+                                        }
+                                        panic!(&quot;function `{}` output is unexpected&quot;, fn_name);
+                                    }
+                                },
                                 Err(e) =&gt; {
                                     panic!(&quot;vm error: {:?}&quot;, e);
                                 }
@@ -2829,6 +2905,32 @@
         }
     }
     <span class="macro">panic!</span>(<span class="string">&quot;The input of SizedString! should be a greator than zero integer&quot;</span>)
+}
+
+<span class="doccomment">/// helps you return handler when caller is not in access control list</span>
+<span class="doccomment">/// ```compile_fail</span>
+<span class="doccomment">/// ewasm_call_only_by!(&quot;8663..1993&quot;)</span>
+<span class="doccomment">/// ```</span>
+<span class="attribute">#[<span class="ident">proc_macro</span>]</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ewasm_call_only_by</span>(<span class="ident">item</span>: <span class="ident">TokenStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TokenStream</span> {
+    <span class="kw">let</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">item</span>.<span class="ident">to_string</span>().<span class="ident">replace</span>(<span class="string">&quot; &quot;</span>, <span class="string">&quot;&quot;</span>);
+    <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">starts_with</span>(<span class="string">&quot;\&quot;&quot;</span>) {
+        <span class="kw">let</span> <span class="ident">addr</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">input</span>.<span class="ident">replace</span>(<span class="string">&quot;\&quot;&quot;</span>, <span class="string">&quot;&quot;</span>));
+        <span class="macro">quote!</span> {
+            <span class="kw">if</span> <span class="ident">sewup::utils::caller</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">sewup::types::Address::from_str</span>(#<span class="ident">addr</span>)<span class="question-mark">?</span> {
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">sewup::errors::HandlerError::Unauthorized</span>.<span class="ident">into</span>())
+            }
+        }
+    } <span class="kw">else</span> {
+        <span class="kw">let</span> <span class="ident">addr</span> <span class="op">=</span> <span class="ident">Ident::new</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">input</span>), <span class="ident">Span::call_site</span>());
+        <span class="macro">quote!</span> {
+            <span class="kw">if</span> <span class="ident">sewup::utils::caller</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">sewup::types::Address::from_str</span>(#<span class="ident">addr</span>)<span class="question-mark">?</span> {
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">sewup::errors::HandlerError::Unauthorized</span>.<span class="ident">into</span>())
+            }
+        }
+    };
+
+    <span class="ident">output</span>.<span class="ident">into</span>()
 }
 </code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="sewup_derive" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>

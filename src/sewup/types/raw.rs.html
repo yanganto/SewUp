@@ -407,6 +407,60 @@
 <span id="407">407</span>
 <span id="408">408</span>
 <span id="409">409</span>
+<span id="410">410</span>
+<span id="411">411</span>
+<span id="412">412</span>
+<span id="413">413</span>
+<span id="414">414</span>
+<span id="415">415</span>
+<span id="416">416</span>
+<span id="417">417</span>
+<span id="418">418</span>
+<span id="419">419</span>
+<span id="420">420</span>
+<span id="421">421</span>
+<span id="422">422</span>
+<span id="423">423</span>
+<span id="424">424</span>
+<span id="425">425</span>
+<span id="426">426</span>
+<span id="427">427</span>
+<span id="428">428</span>
+<span id="429">429</span>
+<span id="430">430</span>
+<span id="431">431</span>
+<span id="432">432</span>
+<span id="433">433</span>
+<span id="434">434</span>
+<span id="435">435</span>
+<span id="436">436</span>
+<span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
+<span id="447">447</span>
+<span id="448">448</span>
+<span id="449">449</span>
+<span id="450">450</span>
+<span id="451">451</span>
+<span id="452">452</span>
+<span id="453">453</span>
+<span id="454">454</span>
+<span id="455">455</span>
+<span id="456">456</span>
+<span id="457">457</span>
+<span id="458">458</span>
+<span id="459">459</span>
+<span id="460">460</span>
+<span id="461">461</span>
+<span id="462">462</span>
+<span id="463">463</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">convert</span>::{<span class="ident">TryFrom</span>, <span class="ident">TryInto</span>},
     <span class="ident">fmt</span>,
@@ -416,12 +470,16 @@
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Deserializer</span>, <span class="ident">Serialize</span>, <span class="ident">Serializer</span>};
 <span class="kw">use</span> <span class="ident">serde_derive::Deserialize</span> <span class="kw">as</span> <span class="ident">DeserializeDerive</span>;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::types</span>::<span class="kw-2">*</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::types::Row</span>;
 
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;wasm32&quot;</span>)]</span>
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::types::Address</span> <span class="kw">as</span> <span class="ident">SewupAddress</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;wasm32&quot;</span>)]</span>
 <span class="kw">use</span> <span class="ident">ewasm_api::types::Address</span>;
 
-<span class="doccomment">/// The storage unit in the contract, which contains 32 bytes</span>
+<span class="doccomment">/// The storage unit in the contract of Ethereum, which contains 32 bytes</span>
+<span class="doccomment">/// The structure is easiler to try_from `Row`; from `Address`, bytes, unsigned integers;</span>
+<span class="doccomment">/// or into `bytes32`, `bytes20`, etc.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Raw</span> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">bytes</span>: [<span class="ident">u8</span>; <span class="number">32</span>],
@@ -551,6 +609,7 @@
         }
     }
 
+    <span class="doccomment">/// build Raw from the address type(bytes20) of ehtereum</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_raw_address</span>(<span class="ident">addr</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>; <span class="number">20</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">Raw::from</span>(<span class="kw-2">&amp;</span>[
             <span class="number">0u8</span>, <span class="number">0u8</span>, <span class="number">0u8</span>, <span class="number">0u8</span>, <span class="number">0u8</span>, <span class="number">0u8</span>, <span class="number">0u8</span>, <span class="number">0u8</span>, <span class="number">0u8</span>, <span class="number">0u8</span>, <span class="number">0u8</span>, <span class="number">0u8</span>, <span class="ident">addr</span>[<span class="number">0</span>], <span class="ident">addr</span>[<span class="number">1</span>], <span class="ident">addr</span>[<span class="number">2</span>],
@@ -563,6 +622,7 @@
         <span class="ident">std::str::from_utf8</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">bytes</span>)
     }
 
+    <span class="doccomment">/// return the storage unit of Ethereum</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_bytes32</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> [<span class="ident">u8</span>; <span class="number">32</span>] {
         <span class="self">self</span>.<span class="ident">bytes</span>
     }
@@ -607,6 +667,12 @@
     }
 }
 
+<span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Raw</span> {
+    <span class="kw">fn</span> <span class="ident">into</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u8</span> {
+        <span class="self">self</span>.<span class="ident">bytes</span>[<span class="number">31</span>]
+    }
+}
+
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Raw</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">num</span>: <span class="ident">u16</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="ident">num</span>.<span class="ident">to_be_bytes</span>();
@@ -614,6 +680,12 @@
             <span class="number">0u8</span>, <span class="number">0u8</span>, <span class="number">0u8</span>, <span class="number">0u8</span>, <span class="number">0u8</span>, <span class="number">0u8</span>, <span class="number">0u8</span>, <span class="number">0u8</span>, <span class="number">0u8</span>, <span class="number">0u8</span>, <span class="number">0u8</span>, <span class="number">0u8</span>, <span class="number">0u8</span>, <span class="number">0u8</span>, <span class="number">0u8</span>, <span class="number">0u8</span>, <span class="number">0u8</span>,
             <span class="number">0u8</span>, <span class="number">0u8</span>, <span class="number">0u8</span>, <span class="number">0u8</span>, <span class="number">0u8</span>, <span class="number">0u8</span>, <span class="number">0u8</span>, <span class="number">0u8</span>, <span class="number">0u8</span>, <span class="number">0u8</span>, <span class="number">0u8</span>, <span class="number">0u8</span>, <span class="number">0u8</span>, <span class="ident">bytes</span>[<span class="number">0</span>], <span class="ident">bytes</span>[<span class="number">1</span>],
         ])
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Raw</span> {
+    <span class="kw">fn</span> <span class="ident">into</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u16</span> {
+        <span class="ident">u16::from_be_bytes</span>(<span class="self">self</span>.<span class="ident">bytes</span>[<span class="number">30</span>..<span class="number">32</span>].<span class="ident">try_into</span>().<span class="ident">unwrap</span>())
     }
 }
 
@@ -628,6 +700,12 @@
     }
 }
 
+<span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Raw</span> {
+    <span class="kw">fn</span> <span class="ident">into</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+        <span class="ident">u32::from_be_bytes</span>(<span class="self">self</span>.<span class="ident">bytes</span>[<span class="number">28</span>..<span class="number">32</span>].<span class="ident">try_into</span>().<span class="ident">unwrap</span>())
+    }
+}
+
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Raw</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">num</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="ident">num</span>.<span class="ident">to_be_bytes</span>();
@@ -636,6 +714,12 @@
             <span class="number">0u8</span>, <span class="number">0u8</span>, <span class="number">0u8</span>, <span class="number">0u8</span>, <span class="number">0u8</span>, <span class="number">0u8</span>, <span class="number">0u8</span>, <span class="ident">bytes</span>[<span class="number">0</span>], <span class="ident">bytes</span>[<span class="number">1</span>], <span class="ident">bytes</span>[<span class="number">2</span>], <span class="ident">bytes</span>[<span class="number">3</span>], <span class="ident">bytes</span>[<span class="number">4</span>],
             <span class="ident">bytes</span>[<span class="number">5</span>], <span class="ident">bytes</span>[<span class="number">6</span>], <span class="ident">bytes</span>[<span class="number">7</span>],
         ])
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Raw</span> {
+    <span class="kw">fn</span> <span class="ident">into</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span> {
+        <span class="ident">u64::from_be_bytes</span>(<span class="self">self</span>.<span class="ident">bytes</span>[<span class="number">24</span>..<span class="number">32</span>].<span class="ident">try_into</span>().<span class="ident">unwrap</span>())
     }
 }
 
@@ -658,6 +742,16 @@
     }
 }
 
+<span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Raw</span> {
+    <span class="kw">fn</span> <span class="ident">into</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_pointer_width</span> <span class="op">=</span> <span class="string">&quot;64&quot;</span>)]</span>
+        <span class="kw">return</span> <span class="ident">u64::from_be_bytes</span>(<span class="self">self</span>.<span class="ident">bytes</span>[<span class="number">24</span>..<span class="number">32</span>].<span class="ident">try_into</span>().<span class="ident">unwrap</span>()) <span class="kw">as</span> <span class="ident">usize</span>;
+
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_pointer_width</span> <span class="op">=</span> <span class="string">&quot;32&quot;</span>)]</span>
+        <span class="kw">return</span> <span class="ident">u32::from_be_bytes</span>(<span class="self">self</span>.<span class="ident">bytes</span>[<span class="number">28</span>..<span class="number">32</span>].<span class="ident">try_into</span>().<span class="ident">unwrap</span>()) <span class="kw">as</span> <span class="ident">usize</span>;
+    }
+}
+
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;wasm32&quot;</span>)]</span>
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Raw</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">addr</span>: <span class="ident">Address</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
@@ -672,6 +766,13 @@
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;wasm32&quot;</span>)]</span>
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">SewupAddress</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Raw</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">addr</span>: <span class="ident">SewupAddress</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="ident">addr</span>.<span class="ident">inner</span>.<span class="ident">into</span>()
+    }
+}
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;wasm32&quot;</span>)]</span>
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Address</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Raw</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">addr</span>: <span class="kw-2">&amp;</span><span class="ident">Address</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="ident">addr</span>.<span class="ident">bytes</span>;
@@ -681,6 +782,13 @@
             <span class="ident">bytes</span>[<span class="number">10</span>], <span class="ident">bytes</span>[<span class="number">11</span>], <span class="ident">bytes</span>[<span class="number">12</span>], <span class="ident">bytes</span>[<span class="number">13</span>], <span class="ident">bytes</span>[<span class="number">14</span>], <span class="ident">bytes</span>[<span class="number">15</span>], <span class="ident">bytes</span>[<span class="number">16</span>], <span class="ident">bytes</span>[<span class="number">17</span>],
             <span class="ident">bytes</span>[<span class="number">18</span>], <span class="ident">bytes</span>[<span class="number">19</span>],
         ])
+    }
+}
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;wasm32&quot;</span>)]</span>
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">SewupAddress</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Raw</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">addr</span>: <span class="kw-2">&amp;</span><span class="ident">SewupAddress</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="ident">addr</span>.<span class="ident">inner</span>.<span class="ident">into</span>()
     }
 }
 
@@ -748,8 +856,8 @@
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>;
 
     <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">Row</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">len</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="number">1</span> {
-            <span class="prelude-val">Err</span>(<span class="string">&quot;Row is bigger than raw&quot;</span>)
+        <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="number">1</span> {
+            <span class="prelude-val">Err</span>(<span class="string">&quot;Row should be bigger than raw&quot;</span>)
         } <span class="kw">else</span> {
             <span class="prelude-val">Ok</span>(<span class="ident">value</span>.<span class="ident">inner</span>[<span class="number">0</span>])
         }
@@ -760,8 +868,8 @@
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>;
 
     <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">value</span>: <span class="ident">Row</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">len</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="number">1</span> {
-            <span class="prelude-val">Err</span>(<span class="string">&quot;Row is bigger than raw&quot;</span>)
+        <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="number">1</span> {
+            <span class="prelude-val">Err</span>(<span class="string">&quot;Row should be bigger than raw&quot;</span>)
         } <span class="kw">else</span> {
             <span class="prelude-val">Ok</span>(<span class="ident">value</span>.<span class="ident">inner</span>[<span class="number">0</span>])
         }
